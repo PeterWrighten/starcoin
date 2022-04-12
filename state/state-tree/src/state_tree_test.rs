@@ -49,6 +49,7 @@ pub fn test_put_blob() -> Result<()> {
     assert_eq!(updates.num_new_leaves, 1);
     assert_eq!(updates.node_batch.len(), 1);
     assert_eq!(updates.stale_node_index_batch.len(), 1);
+    state.flush()?;
 
     let account2 = update_nibble(&account1, 0, 2);
     state.put(account2, vec![0, 0, 0]);
@@ -59,9 +60,10 @@ pub fn test_put_blob() -> Result<()> {
     let (root, updates) = state.change_sets();
     assert_eq!(root, new_root_hash);
     assert_eq!(updates.num_stale_leaves, 0);
-    assert_eq!(updates.num_new_leaves, 2);
-    assert_eq!(updates.node_batch.len(), 3);
-    assert_eq!(updates.stale_node_index_batch.len(), 1);
+    assert_eq!(updates.num_new_leaves, 1);
+    assert_eq!(updates.node_batch.len(), 2);
+    assert_eq!(updates.stale_node_index_batch.len(), 0);
+    state.flush()?;
 
     // modify existed account
     state.put(account1, vec![1, 1, 1]);
@@ -71,10 +73,11 @@ pub fn test_put_blob() -> Result<()> {
     assert_eq!(state.get(&account1)?, Some(vec![1, 1, 1]));
     let (root, updates) = state.change_sets();
     assert_eq!(root, new_root_hash);
-    assert_eq!(updates.num_stale_leaves, 0);
-    assert_eq!(updates.num_new_leaves, 2);
-    assert_eq!(updates.node_batch.len(), 3);
-    assert_eq!(updates.stale_node_index_batch.len(), 1);
+    assert_eq!(updates.num_stale_leaves, 1);
+    assert_eq!(updates.num_new_leaves, 1);
+    assert_eq!(updates.node_batch.len(), 2);
+    assert_eq!(updates.stale_node_index_batch.len(), 2);
+    state.flush()?;
 
     let account3 = update_nibble(&account1, 2, 3);
     for (k, v) in vec![(account1, vec![1, 1, 0]), (account3, vec![0, 0, 0])] {
@@ -91,10 +94,11 @@ pub fn test_put_blob() -> Result<()> {
     assert_eq!(state.get(&account3)?, Some(vec![0, 0, 0]));
 
     let (_, updates) = state.change_sets();
-    assert_eq!(updates.num_stale_leaves, 0);
-    assert_eq!(updates.num_new_leaves, 3);
-    assert_eq!(updates.node_batch.len(), 6);
-    assert_eq!(updates.stale_node_index_batch.len(), 1);
+    assert_eq!(updates.num_stale_leaves, 1);
+    assert_eq!(updates.num_new_leaves, 2);
+    assert_eq!(updates.node_batch.len(), 5);
+    assert_eq!(updates.stale_node_index_batch.len(), 2);
+    state.flush()?;
     Ok(())
 }
 
